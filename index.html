@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color-Coded Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <style>
+        /* CSS */
+        #map {
+            height: 100vh; /* Full-screen height */
+            width: 100%; /* Full-screen width */
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // JavaScript
+        // Initialize the map
+        const map = L.map('map').setView([20.5937, 78.9629], 4); // Centered on India with zoom level 4
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Load and add GeoJSON data
+        fetch('custom.geo.json') // Replace with the path to your GeoJSON file
+            .then(response => response.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    style: function(feature) {
+                        let color = 'green'; // Default color
+                        if (feature.properties.wb_a2 === "AU") {
+                            color = 'red'; // Australia
+                        }
+                        if (feature.properties.wb_a2 === "IR") {
+                            color = 'yellow'; // Iran
+                        }
+                        if (feature.properties.wb_a2 === "IN") {
+                            color = 'blue'; // India
+                        }
+                        return {
+                            color: color,
+                            weight: 2,
+                            fillColor: color,
+                            fillOpacity: 0.5,
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        // Show popup when hovering over India
+                        if (feature.properties.wb_a2 === "IN") {
+                            layer.on('mouseover', function() {
+                                layer.bindPopup('Welcome to India').openPopup();
+                            });
+                            layer.on('mouseout', function() {
+                                layer.closePopup();
+                            });
+                        }
+                    }
+                }).addTo(map);
+            })
+            .catch(error => console.error('Error loading GeoJSON:', error));
+    </script>
+</body>
+</html>
